@@ -1,4 +1,6 @@
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from typing import Annotated
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
@@ -7,10 +9,13 @@ async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):
-    """Базовый класс, от которого будут наследоваться все модели (таблицы)."""
+    """Базовый класс для всех моделей"""
 
 
 async def get_session():
-    """Выдаёт сессию для одного запроса и закрывает её после."""
+    """Выдаёт сессию БД на время одного запроса"""
     async with async_session() as session:
         yield session
+
+
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
