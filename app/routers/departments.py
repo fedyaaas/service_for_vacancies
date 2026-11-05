@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
 from app.core.database import SessionDep
+from app.core.deps import AdminUser
 from app.schemas.department import DepartmentCreate, DepartmentRead
 from app.services import department as service
 
@@ -24,8 +25,8 @@ async def read_department(department_id: int, session: SessionDep):
 
 
 @router.post("/", response_model=DepartmentRead, status_code=status.HTTP_201_CREATED)
-async def create_department(data: DepartmentCreate, session: SessionDep):
-    """Создание отдела"""
+async def create_department(data: DepartmentCreate, session: SessionDep, _: AdminUser):
+    """Создание отдела, только для админа"""
     if await service.get_department_by_name(session, data.name):
         raise HTTPException(status.HTTP_409_CONFLICT, "Такой отдел уже есть")
     return await service.create_department(session, data)
@@ -33,9 +34,9 @@ async def create_department(data: DepartmentCreate, session: SessionDep):
 
 @router.put("/{department_id}", response_model=DepartmentRead)
 async def update_department(
-    department_id: int, data: DepartmentCreate, session: SessionDep
+    department_id: int, data: DepartmentCreate, session: SessionDep, _: AdminUser
 ):
-    """Изменение названия отдела"""
+    """Изменение названия отдела, только для админа"""
     department = await service.get_department(session, department_id)
     if department is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Отдел не найден")
@@ -46,8 +47,10 @@ async def update_department(
 
 
 @router.delete("/{department_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_department(department_id: int, session: SessionDep) -> None:
-    """Удаление отдела"""
+async def delete_department(
+    department_id: int, session: SessionDep, _: AdminUser
+) -> None:
+    """Удаление отдела, только для админа"""
     department = await service.get_department(session, department_id)
     if department is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Отдел не найден")
