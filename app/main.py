@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.core.database import SessionDep
-from app.routers import departments
+from app.routers import departments, skills
 
 app = FastAPI(
     title="Сервис вакансий",
@@ -10,15 +10,16 @@ app = FastAPI(
     version="1.0.0",
 )
 app.include_router(departments.router)
+app.include_router(skills.router)
 
 
-@app.get("/")
+@app.get("/", tags=["Служебное"])
 async def root() -> dict[str, str]:
     """Проверка, что сервис работает"""
     return {"message": "Сервис вакансий работает"}
 
 
-@app.get("/health/db")
+@app.get("/health/db", tags=["Служебное"])
 async def check_db(session: SessionDep) -> dict[str, str]:
     """Проверка связи с БД"""
     await session.execute(text("SELECT 1"))
